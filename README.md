@@ -1,8 +1,12 @@
 # DelayedJobEs
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/delayed_job_es`. To experiment with that code, run `bin/console` for an interactive prompt.
+Delayed Job Backend adapter for ElasticSearch.
 
-TODO: Delete this and the text above, and describe your gem
+
+The gem uses the 'elasticsearch-transport' and 'elasticsearch-api' as dependencies.
+
+It has no other dependencies, and should be easy to integrate into any ruby based project that uses elasticsearch in any form.
+
 
 ## Installation
 
@@ -14,7 +18,7 @@ gem 'delayed_job_es'
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
 Or install it yourself as:
 
@@ -22,13 +26,67 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### Job Class
+
+Create a Job Class in the app/jobs folder :
+
+```
+  	class BackgroundJob < ActiveJob::Base
+  
+  		queue_as :default
+
+  		## Specify the queue adapter as delayed_job_es
+  		self.queue_adapter = :delayed_job_es
+
+  		self.logger = Logger.new(nil) if Rails.env.test? 
+
+	  	rescue_from(StandardError) do |exception|
+	  		puts exception.message
+	   		puts exception.backtrace.join("\n")
+	  	end
+  
+  		def perform(args)
+  			## process job here.
+  		end
+
+  	end
+```
+
+### Es Indexes
+
+Create required ES Indexes:
+
+
+```ruby
+# in the rails console, (you only need to do this once)
+DelayedJob::Backend::Es::Job.create_indices
+```
+
+### Job Daemon
+
+Open a terminal window, navigate to your project and run :
+
+	$ bundle exec rake jobs:work
+
+This will run a job daemon(standard DelayedJob).
+
+
+### Queue a Job
+
+To queue a job, from anywhere using the job class above run (you can try this in the rails console, in another window):
+
+```ruby
+BackgroundJob.perform_later({"hello" => "world"})
+```
+
+If you look in the jobs daemon window, you will see the job getting processed.
+
+
+
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
