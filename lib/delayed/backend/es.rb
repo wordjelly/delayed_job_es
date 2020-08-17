@@ -365,8 +365,10 @@ module Delayed
 							:locked_by => worker
 						},
 						:source => '''
-							ctx._source.locked_at = params.locked_at;
-							ctx._source.locked_by = params.locked_by;
+						    if(ctx._source.locked_at == null){
+								ctx._source.locked_at = params.locked_at;
+								ctx._source.locked_by = params.locked_by;
+							}
 						'''
 					}
 					#begin
@@ -375,6 +377,10 @@ module Delayed
 						:scripted_upsert => false,
 						:upsert => {}	
 					})
+
+					## if this returns no-op chec,
+					puts "lock response:"
+					puts response.to_s
 				
 		          self
 		        end
