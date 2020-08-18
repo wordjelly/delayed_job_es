@@ -35,8 +35,15 @@ module Delayed
 				cattr_accessor :client
 
 		        def self.get_client
-		        	client ||= Elasticsearch::Client.new
-		        	client
+		        	#puts "the environment is------------>"
+		        	#puts Rails.env.to_s
+		        	#where can we define the settings.
+		        	if Elasticsearch::Persistence.client
+		        		Elasticsearch::Persistence.client
+		        	else
+		        		client ||= Elasticsearch::Client.new
+		        		client
+		        	end
 		        end
 
 		        def self.mappings
