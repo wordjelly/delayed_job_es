@@ -36,7 +36,7 @@ Create a Job Class in the app/jobs folder :
   		queue_as :default
 
   		## Specify the queue adapter as delayed_job_es
-  		self.queue_adapter = :delayed_job_es
+  		self.queue_adapter = :delayed_job
 
   		self.logger = Logger.new(nil) if Rails.env.test? 
 
