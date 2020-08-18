@@ -9,6 +9,7 @@ module Delayed
 		module Es
 			class Job
 				attr_accessor :id
+				attr_accessor :version
 		        attr_accessor :priority
 		        attr_accessor :attempts
 		        attr_accessor :handler
@@ -335,18 +336,20 @@ module Delayed
 
 					search_response = get_client.search :index => INDEX_NAME, :type => DOCUMENT_TYPE,
 						:body => {
+							version: true,
 							size: limit,
 							sort: sort,
 							query: query
 						}
 					
 
-					#puts "search_response is"
-					#puts search_response["hits"]["hits"]
+					puts "search_response is"
+					puts search_response["hits"]["hits"]
 					## it would return the first hit.
 					search_response["hits"]["hits"].map{|c|
 						k = new(c["_source"])
 						k.id = c["_id"]
+						k.version = c["_version"]
 						k
 					}
 
@@ -362,15 +365,24 @@ module Delayed
 						:lang => "painless",
 						:params => {
 							:locked_at => self.class.db_time_now.strftime("%Y-%m-%d %H:%M:%S"),
-							:locked_by => worker
+							:locked_by => worker,
+							:version => self.version
 						},
 						:source => '''
-						    if(ctx._source.locked_at == null){
+							if(ctx._version == params.version){
 								ctx._source.locked_at = params.locked_at;
 								ctx._source.locked_by = params.locked_by;
 							}
+							else{
+								ctx.op = "none";
+							}
 						'''
 					}
+
+					puts "Script is"
+					puts JSON.pretty_generate(script)
+
+
 					#begin
 					response = self.class.get_client.update(index: INDEX_NAME, type: DOCUMENT_TYPE, id: self.id.to_s, body: {
 						:script => script,
@@ -381,8 +393,10 @@ module Delayed
 					## if this returns no-op chec,
 					puts "lock response:"
 					puts response.to_s
-				
-		          self
+					
+
+					return response["result"] == "updated"
+		          
 		        end
 
 		        def self.db_time_now
