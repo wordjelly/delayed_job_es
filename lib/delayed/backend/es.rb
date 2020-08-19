@@ -89,10 +89,20 @@ module Delayed
 					response = get_client.indices.create :index => INDEX_NAME, :body => {
 						mappings: {DOCUMENT_TYPE => { :properties =>  mappings}}
 					}
+					puts "Created delayed job index with response."
+					puts response.to_s
 				end
 
 				def self.delete_index
-					response = get_client.indices.delete :index => INDEX_NAME
+					if Elasticsearch::Persistence.client.indices.exists? index: INDEX_NAME
+						
+						puts "delayed job index exists."
+						response = get_client.indices.delete :index => INDEX_NAME
+						puts "delete response:"
+						puts response.to_s
+					else
+						puts "delayed job index does not exist."
+					end
 				end
 
 				def self.create_indexes
