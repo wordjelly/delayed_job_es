@@ -70,7 +70,8 @@ module Delayed
 							type: 'keyword'
 						},
 						handler: {
-							type: 'keyword'
+							type: 'text',
+							index: false
 						},
 						locked_by: {
 							type: 'keyword'

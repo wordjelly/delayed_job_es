@@ -57,7 +57,7 @@ Create a Job Class in the app/jobs folder :
 Create required ES Indexes:
 
 
-```ruby
+```
 # in the rails console, (you only need to do this once)
 DelayedJob::Backend::Es::Job.create_indices
 ```
@@ -76,7 +76,7 @@ This will run a job daemon(standard DelayedJob).
 To queue a job, from anywhere using the job class above run (you can try this in the rails console, in another window):
 
 
-```ruby
+```
 BackgroundJob.perform_later({"hello" => "world"})
 ```
 
